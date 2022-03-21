@@ -15,7 +15,9 @@ DHT dht(DHTPin, DHTTYPE);   // Initialize DHT sensor.
 float Temperature;          // temperature
 float Humidity;             // humidity
 float HeatIndex;            // Heatindex
- 
+int LDR_In = A0;
+int lichtHoeveelheid;
+
 //      web server
 #include <ESP8266WiFi.h>
 #include <WiFiClient.h>
@@ -48,6 +50,7 @@ void readDHT11(){
         Temperature = temperature;
         Humidity =  humidity ;
         HeatIndex = heatindex;
+        lichtHoeveelheid = analogRead(LDR_In);
         // show in Serial Monitor
         Serial.print("Temp. ");
         Serial.print(Temperature);
@@ -55,6 +58,9 @@ void readDHT11(){
         Serial.print(humidity);
         Serial.print("% Heatindex ");
         Serial.println(heatindex);
+        Serial.println(lichtHoeveelheid);
+        Serial.print("Lichthoeveelheid. lichtHoeveelheid  ");
+        
       }
  } 
 
@@ -88,7 +94,7 @@ void handleNotFound(){
 void handleSensor(){
   server.send(200, "text/html", "<h3>Duurzaam Huis: " 
    +  studentName + "</h3>Temperature " + String(Temperature) + 
-   " Celsius<br>Humidity " + String(Humidity) +  " %<br>Heatindex " + String(HeatIndex));
+   " Celsius<br>Humidity " + String(Humidity) +  " %<br>Heatindex " + String(HeatIndex) + "%<br>lichtHoeveelheid " + String(lichtHoeveelheid));
   }
 
 void setup(){
