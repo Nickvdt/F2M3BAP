@@ -9,12 +9,14 @@
 
 //        initialise temperature humidity sensor DHT11
 #include "DHT.h"
+#include <math.h>  
 #define DHTTYPE DHT11       // DHT 11 sensor
 uint8_t DHTPin = D7;        // DHT Sensor data input
 DHT dht(DHTPin, DHTTYPE);   // Initialize DHT sensor.    
 float Temperature;          // temperature
 float Humidity;             // humidity
 float HeatIndex;            // Heatindex
+float Kelvin;               // Kelvin
 int LDR_In = A0;
 int lichtHoeveelheid;
 
@@ -52,6 +54,8 @@ void readDHT11(){
         HeatIndex = heatindex;
         lichtHoeveelheid = analogRead(LDR_In);
         // show in Serial Monitor
+        Kelvin = Temperature + 273,15;
+        Serial.print("Kelvin");
         Serial.print("Temp. ");
         Serial.print(Temperature);
         Serial.print("C. Humidity  ");
@@ -94,7 +98,7 @@ void handleNotFound(){
 void handleSensor(){
   server.send(200, "text/html", "<h3>Duurzaam Huis: " 
    +  studentName + "</h3>Temperature " + String(Temperature) + 
-   " Celsius<br>Humidity " + String(Humidity) +  " %<br>Heatindex " + String(HeatIndex) + "%<br>lichtHoeveelheid " + String(lichtHoeveelheid));
+   " Celsius<br>Humidity " + String(Humidity) +  " %<br>Heatindex " + String(HeatIndex) + "%<br>lichtHoeveelheid " + String(lichtHoeveelheid) +"%<br>Kelvin " + String(Kelvin));
   }
 
 void setup(){
@@ -113,7 +117,22 @@ void setup(){
   server.onNotFound(handleNotFound);
 }
 
+double Thermister(int RawADC) {  //Function to perform the fancy math of the Steinhart-Hart equation
+ double Temp;
+ Temp = log(((10240000/RawADC) - 10000));
+ Temp = 1 / (0.001129148 + (0.000234125 + (0.0000000876741 * Temp * Temp ))* Temp );
+ Temp = Temp - 273.15;              // Convert Kelvin to Celsius
+ Temp = (Temp * 9.0)/ 5.0 + 32.0; // Celsius to Fahrenheit - comment out this line if you need Celsius
+ return Temp;
+}
+
 void loop(){
+  int val;                //Create an integer variable
+  double temp;            //Variable to hold a temperature value
+  val=analogRead(0);      //Read the analog port 0 and store the value in val
+  temp=Thermister(val);   //Runs the fancy math on the raw analog value
+  Serial.println(temp);   //Print the value to the serial port
+  delay(1000); 
   if (WiFi.status() != WL_CONNECTED) wifiConnect();// reconnect Wifi if necessary 
   server.handleClient();
   delay(3000);    //Send a request every XXX ms  DHT11 needs at least 2 seconds
